@@ -8,6 +8,8 @@ import {
   Paperclip,
   Home,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 interface ChatMessage {
   type: "user" | "ai";
@@ -23,7 +25,12 @@ interface SummaryProps {
   caseDetails: {
     notes: Array<{ id: string; content: string; date: string }>;
     documents: Array<{ id: string; name: string; url: string }>;
-    evidence: Array<{ id: string; type: string; description: string }>;
+    evidence: Array<{
+      id: string;
+      type: string;
+      description: string;
+      file?: File;
+    }>;
   };
   onGoHome: () => void;
 }
@@ -35,6 +42,76 @@ function Summary({
   caseDetails,
   onGoHome,
 }: SummaryProps) {
+  const generateCaseFile = () => {
+    const doc = new jsPDF();
+
+    // Add header
+    doc.setFontSize(20);
+    doc.text("Case Summary", 105, 20, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`Topic: ${topic}`, 20, 30);
+    doc.text(`Location: ${location}`, 20, 37);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 44);
+
+    // Add case notes
+    doc.setFontSize(14);
+    doc.text("Case Notes", 20, 60);
+    doc.setFontSize(10);
+    caseDetails.notes.forEach((note, index) => {
+      const yPos = 70 + index * 20;
+      doc.text(`• ${note.content}`, 20, yPos);
+      doc.text(
+        `  Date: ${new Date(note.date).toLocaleDateString()}`,
+        20,
+        yPos + 5
+      );
+    });
+
+    // Add evidence
+    doc.setFontSize(14);
+    doc.text("Evidence Collection", 20, 120);
+    doc.setFontSize(10);
+    caseDetails.evidence.forEach((item, index) => {
+      const yPos = 130 + index * 30;
+      doc.text(`• Type: ${item.type}`, 20, yPos);
+      doc.text(`  Description: ${item.description}`, 20, yPos + 5);
+      if (item.file) {
+        doc.text(`  File: ${item.file.name}`, 20, yPos + 10);
+      }
+    });
+
+    // Add chat history
+    doc.setFontSize(14);
+    doc.text("Consultation History", 20, 200);
+    doc.setFontSize(10);
+    chatHistory.forEach((msg, index) => {
+      const yPos = 210 + index * 20;
+      const prefix = msg.type === "user" ? "You: " : "AI: ";
+      doc.text(`${prefix}${msg.content}`, 20, yPos);
+      doc.text(`  ${new Date(msg.timestamp).toLocaleString()}`, 20, yPos + 5);
+    });
+
+    // Add key rights
+    doc.setFontSize(14);
+    doc.text("Key Rights", 20, 300);
+    doc.setFontSize(10);
+    const rights = [
+      "Right to fair housing and protection against discrimination",
+      "Right to a habitable living space",
+      "Right to privacy and proper notice before landlord entry",
+    ];
+    rights.forEach((right, index) => {
+      doc.text(`• ${right}`, 20, 310 + index * 10);
+    });
+
+    // Save the PDF
+    doc.save(
+      `case-summary-${topic.toLowerCase().replace(/\s+/g, "-")}-${
+        new Date().toISOString().split("T")[0]
+      }.pdf`
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -67,14 +144,13 @@ function Summary({
             {caseDetails.evidence.map((item) => (
               <div key={item.id} className="message-bubble">
                 <h4 className="font-medium text-foreground">{item.type}</h4>
-                <p className="text-sm text-foreground mt-1">{item.description}</p>
+                <p className="text-sm text-foreground mt-1">
+                  {item.description}
+                </p>
               </div>
             ))}
             {caseDetails.documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="message-bubble flex items-center"
-              >
+              <div key={doc.id} className="message-bubble flex items-center">
                 <Paperclip className="h-4 w-4 text-muted mr-2" />
                 <a
                   href={doc.url}
@@ -119,12 +195,14 @@ function Summary({
             {chatHistory.map((msg, index) => (
               <div
                 key={index}
-                className={`${msg.type === 'user' ? 'message-bubble-user' : 'message-bubble-ai'} ${
-                  msg.type === 'user' ? 'ml-4' : 'mr-4'
-                }`}
+                className={`${
+                  msg.type === "user"
+                    ? "message-bubble-user text-white"
+                    : "message-bubble-ai text-primary"
+                } ${msg.type === "user" ? "ml-4" : "mr-4"}`}
               >
-                <p className="text-sm text-foreground">{msg.content}</p>
-                <p className="text-xs text-muted mt-1">
+                <p className="text-sm ">{msg.content}</p>
+                <p className="text-xs mt-1 opacity-75">
                   {new Date(msg.timestamp).toLocaleString()}
                 </p>
               </div>
@@ -134,7 +212,7 @@ function Summary({
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4 border-t border-border">
-          <button className="btn-primary">
+          <button onClick={generateCaseFile} className="btn-primary">
             <Download className="h-4 w-4 mr-2" />
             Download Case File
           </button>
@@ -146,10 +224,7 @@ function Summary({
             <Bell className="h-4 w-4 mr-2" />
             Set Case Reminders
           </button>
-          <button
-            onClick={onGoHome}
-            className="btn-neutral"
-          >
+          <button onClick={onGoHome} className="btn-neutral">
             <Home className="h-4 w-4 mr-2" />
             Return to Home
           </button>

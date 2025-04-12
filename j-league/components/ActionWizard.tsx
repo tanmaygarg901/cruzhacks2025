@@ -12,7 +12,18 @@ import {
 interface CaseDetails {
   notes: Array<{ id: string; content: string; date: string }>;
   documents: Array<{ id: string; name: string; url: string }>;
-  evidence: Array<{ id: string; type: string; description: string }>;
+  evidence: Array<{
+    id: string;
+    type: string;
+    description: string;
+    file?: File;
+  }>;
+}
+
+interface NewEvidence {
+  type: string;
+  description: string;
+  file?: File | undefined;
 }
 
 interface ActionWizardProps {
@@ -30,7 +41,11 @@ function ActionWizard({
 }: ActionWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [newNote, setNewNote] = useState("");
-  const [newEvidence, setNewEvidence] = useState({ type: "", description: "" });
+  const [newEvidence, setNewEvidence] = useState<NewEvidence>({
+    type: "",
+    description: "",
+    file: undefined,
+  });
 
   const steps = [
     {
@@ -72,6 +87,13 @@ function ActionWizard({
     }
   };
 
+  const handleDeleteNote = (noteId: string) => {
+    setCaseDetails({
+      ...caseDetails,
+      notes: caseDetails.notes.filter((note) => note.id !== noteId),
+    });
+  };
+
   const handleAddEvidence = () => {
     if (newEvidence.type && newEvidence.description) {
       setCaseDetails({
@@ -84,7 +106,23 @@ function ActionWizard({
           },
         ],
       });
-      setNewEvidence({ type: "", description: "" });
+      setNewEvidence({ type: "", description: "", file: undefined });
+    }
+  };
+
+  const handleDeleteEvidence = (evidenceId: string) => {
+    setCaseDetails({
+      ...caseDetails,
+      evidence: caseDetails.evidence.filter(
+        (evidence) => evidence.id !== evidenceId
+      ),
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewEvidence((prev) => ({ ...prev, file }));
     }
   };
 
@@ -117,7 +155,7 @@ function ActionWizard({
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Add a note about your situation..."
-                className="input-field min-h-[120px]"
+                className="input-field w-full rounded-md min-h-[120px] resize-none"
                 rows={4}
               />
               <button onClick={handleAddNote} className="btn-primary">
@@ -127,11 +165,22 @@ function ActionWizard({
             </div>
             <div className="space-y-2">
               {caseDetails.notes.map((note) => (
-                <div key={note.id} className="message-bubble">
-                  <p className="text-sm text-foreground">{note.content}</p>
-                  <p className="text-xs text-muted mt-1">
-                    {new Date(note.date).toLocaleDateString()}
-                  </p>
+                <div
+                  key={note.id}
+                  className="message-bubble flex justify-between items-start"
+                >
+                  <div>
+                    <p className="text-sm text-foreground">{note.content}</p>
+                    <p className="text-xs text-muted mt-1">
+                      {new Date(note.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteNote(note.id)}
+                    className="text-muted hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -149,7 +198,7 @@ function ActionWizard({
                   setNewEvidence({ ...newEvidence, type: e.target.value })
                 }
                 placeholder="Type of evidence"
-                className="input-field"
+                className="input-field rounded-md"
               />
               <textarea
                 value={newEvidence.description}
@@ -160,43 +209,26 @@ function ActionWizard({
                   })
                 }
                 placeholder="Description of evidence..."
-                className="input-field min-h-[120px]"
+                className="input-field w-full rounded-md min-h-[120px] resize-none"
                 rows={3}
               />
-              <div className="flex space-x-2">
-                <button
-                  onClick={() =>
-                    document.getElementById("file-upload")?.click()
-                  }
-                  className="btn-secondary flex-1"
-                >
+              <div className="flex items-center space-x-2">
+                <label className="btn-secondary cursor-pointer">
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept="image/*,.pdf,.doc,.docx"
+                  />
                   <Paperclip className="h-4 w-4 mr-2" />
                   Attach File
-                </button>
-                <button
-                  onClick={() =>
-                    document.getElementById("camera-upload")?.click()
-                  }
-                  className="btn-secondary flex-1"
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Take Photo
-                </button>
+                </label>
+                {newEvidence.file && (
+                  <span className="text-sm text-foreground">
+                    {newEvidence.file.name}
+                  </span>
+                )}
               </div>
-              <input
-                id="file-upload"
-                type="file"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <input
-                id="camera-upload"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
               <button onClick={handleAddEvidence} className="btn-primary">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Evidence
@@ -204,17 +236,28 @@ function ActionWizard({
             </div>
             <div className="space-y-2">
               {caseDetails.evidence.map((item) => (
-                <div key={item.id} className="message-bubble">
-                  <h4 className="font-medium text-foreground">{item.type}</h4>
-                  <p className="text-sm text-foreground mt-1">
-                    {item.description}
-                  </p>
-                </div>
-              ))}
-              {caseDetails.documents.map((doc) => (
-                <div key={doc.id} className="message-bubble flex items-center">
-                  <Paperclip className="h-4 w-4 text-muted mr-2" />
-                  <span className="text-sm text-foreground">{doc.name}</span>
+                <div
+                  key={item.id}
+                  className="message-bubble flex justify-between items-start"
+                >
+                  <div>
+                    <h4 className="font-medium text-foreground">{item.type}</h4>
+                    <p className="text-sm text-foreground mt-1">
+                      {item.description}
+                    </p>
+                    {item.file && (
+                      <div className="flex items-center mt-2 text-sm text-muted">
+                        <Paperclip className="h-4 w-4 mr-2" />
+                        {item.file.name}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteEvidence(item.id)}
+                    className="text-muted hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -272,7 +315,7 @@ function ActionWizard({
             </div>
             {index < steps.length - 1 && (
               <div
-                className={`flex-1 h-0.5 ${
+                className={`flex-1 h-0.5  ${
                   index < currentStep ? "bg-primary" : "bg-muted"
                 }`}
               />
