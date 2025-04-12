@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Globe, Clock } from 'lucide-react';
 
+interface Resource {
+  name: string;
+  type: string;
+  address: string;
+  phone: string;
+  website: string;
+  hours: string;
+  distance: string;
+}
+
 interface LocalResourcesProps {
   topic: string;
   location: string;
@@ -8,7 +18,7 @@ interface LocalResourcesProps {
 }
 
 function LocalResources({ topic, location, onComplete }: LocalResourcesProps) {
-  const [resources] = useState([
+  const [resources] = useState<Resource[]>([
     {
       name: 'Legal Aid Society',
       type: 'Legal Clinic',
@@ -32,8 +42,8 @@ function LocalResources({ topic, location, onComplete }: LocalResourcesProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Local Legal Resources</h2>
-        <p className="mt-2 text-sm text-gray-600">
+        <h2 className="text-xl font-bold text-foreground">Local Legal Resources</h2>
+        <p className="mt-2 text-sm text-muted">
           Legal resources and support services near you
         </p>
       </div>
@@ -42,34 +52,34 @@ function LocalResources({ topic, location, onComplete }: LocalResourcesProps) {
         {resources.map((resource, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl shadow-sm p-4 border border-gray-100"
+            className="card"
           >
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               {resource.name}
             </h3>
-            <p className="text-sm text-blue-600 font-medium">{resource.type}</p>
+            <p className="text-sm text-primary font-medium">{resource.type}</p>
             
             <div className="mt-3 space-y-2">
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+              <div className="flex items-center text-sm text-foreground">
+                <MapPin className="h-4 w-4 mr-2 text-muted" />
                 <span className="flex-1">{resource.address}</span>
-                <span className="ml-2 text-xs text-blue-600">
+                <span className="ml-2 text-xs text-primary">
                   ({resource.distance})
                 </span>
               </div>
               
-              <div className="flex items-center text-sm text-gray-600">
-                <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                <a href={`tel:${resource.phone}`} className="hover:text-blue-600">
+              <div className="flex items-center text-sm text-foreground">
+                <Phone className="h-4 w-4 mr-2 text-muted" />
+                <a href={`tel:${resource.phone}`} className="text-primary hover:underline">
                   {resource.phone}
                 </a>
               </div>
               
-              <div className="flex items-center text-sm text-gray-600">
-                <Globe className="h-4 w-4 mr-2 text-gray-400" />
+              <div className="flex items-center text-sm text-foreground">
+                <Globe className="h-4 w-4 mr-2 text-muted" />
                 <a
                   href={`https://${resource.website}`}
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -77,8 +87,8 @@ function LocalResources({ topic, location, onComplete }: LocalResourcesProps) {
                 </a>
               </div>
               
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="h-4 w-4 mr-2 text-gray-400" />
+              <div className="flex items-center text-sm text-foreground">
+                <Clock className="h-4 w-4 mr-2 text-muted" />
                 <span>{resource.hours}</span>
               </div>
             </div>
@@ -89,7 +99,7 @@ function LocalResources({ topic, location, onComplete }: LocalResourcesProps) {
       <div className="sticky bottom-4">
         <button
           onClick={onComplete}
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="btn-primary w-full"
         >
           Continue to Action Steps
         </button>

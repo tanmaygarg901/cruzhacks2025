@@ -1,43 +1,58 @@
-import React, { useState } from 'react';
-import { CheckCircle, ChevronRight, Plus, X, Camera, Paperclip } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  CheckCircle,
+  ChevronRight,
+  ChevronLeft,
+  Plus,
+  X,
+  Camera,
+  Paperclip,
+} from "lucide-react";
+
+interface CaseDetails {
+  notes: Array<{ id: string; content: string; date: string }>;
+  documents: Array<{ id: string; name: string; url: string }>;
+  evidence: Array<{ id: string; type: string; description: string }>;
+}
 
 interface ActionWizardProps {
   topic: string;
   onComplete: () => void;
-  caseDetails: {
-    notes: Array<{ id: string; content: string; date: string }>;
-    documents: Array<{ id: string; name: string; url: string }>;
-    evidence: Array<{ id: string; type: string; description: string }>;
-  };
-  setCaseDetails: (details: any) => void;
+  caseDetails: CaseDetails;
+  setCaseDetails: (details: CaseDetails) => void;
 }
 
-function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: ActionWizardProps) {
+function ActionWizard({
+  topic,
+  onComplete,
+  caseDetails,
+  setCaseDetails,
+}: ActionWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [newNote, setNewNote] = useState('');
-  const [newEvidence, setNewEvidence] = useState({ type: '', description: '' });
+  const [newNote, setNewNote] = useState("");
+  const [newEvidence, setNewEvidence] = useState({ type: "", description: "" });
 
   const steps = [
     {
-      title: 'Document Situation',
-      description: 'Record key details',
-      component: 'notes'
+      title: "Document Situation",
+      description: "Record key details",
+      component: "notes",
     },
     {
-      title: 'Gather Evidence',
-      description: 'Collect documentation',
-      component: 'evidence'
+      title: "Gather Evidence",
+      description: "Collect documentation",
+      component: "evidence",
     },
     {
-      title: 'Know Your Rights',
-      description: 'Review legal options',
-      component: 'rights'
+      title: "Know Your Rights",
+      description: "Review legal options",
+      component: "rights",
     },
     {
-      title: 'Take Action',
-      description: 'Next steps',
-      component: 'action'
-    }
+      title: "Take Action",
+      description: "Next steps",
+      component: "action",
+    },
   ];
 
   const handleAddNote = () => {
@@ -49,11 +64,11 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
           {
             id: Date.now().toString(),
             content: newNote,
-            date: new Date().toISOString()
-          }
-        ]
+            date: new Date().toISOString(),
+          },
+        ],
       });
-      setNewNote('');
+      setNewNote("");
     }
   };
 
@@ -65,11 +80,11 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
           ...caseDetails.evidence,
           {
             id: Date.now().toString(),
-            ...newEvidence
-          }
-        ]
+            ...newEvidence,
+          },
+        ],
       });
-      setNewEvidence({ type: '', description: '' });
+      setNewEvidence({ type: "", description: "" });
     }
   };
 
@@ -85,16 +100,16 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
           {
             id: Date.now().toString(),
             name: file.name,
-            url: fakeUrl
-          }
-        ]
+            url: fakeUrl,
+          },
+        ],
       });
     }
   };
 
   const renderStepContent = () => {
     switch (steps[currentStep].component) {
-      case 'notes':
+      case "notes":
         return (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -102,22 +117,19 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 placeholder="Add a note about your situation..."
-                className="w-full p-3 border rounded-lg text-sm"
+                className="input-field min-h-[120px]"
                 rows={4}
               />
-              <button
-                onClick={handleAddNote}
-                className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-full text-sm"
-              >
+              <button onClick={handleAddNote} className="btn-primary">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Note
               </button>
             </div>
             <div className="space-y-2">
               {caseDetails.notes.map((note) => (
-                <div key={note.id} className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-700">{note.content}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                <div key={note.id} className="message-bubble">
+                  <p className="text-sm text-foreground">{note.content}</p>
+                  <p className="text-xs text-muted mt-1">
                     {new Date(note.date).toLocaleDateString()}
                   </p>
                 </div>
@@ -126,35 +138,46 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
           </div>
         );
 
-      case 'evidence':
+      case "evidence":
         return (
           <div className="space-y-4">
             <div className="space-y-2">
               <input
                 type="text"
                 value={newEvidence.type}
-                onChange={(e) => setNewEvidence({ ...newEvidence, type: e.target.value })}
+                onChange={(e) =>
+                  setNewEvidence({ ...newEvidence, type: e.target.value })
+                }
                 placeholder="Type of evidence"
-                className="w-full p-3 border rounded-lg text-sm"
+                className="input-field"
               />
               <textarea
                 value={newEvidence.description}
-                onChange={(e) => setNewEvidence({ ...newEvidence, description: e.target.value })}
+                onChange={(e) =>
+                  setNewEvidence({
+                    ...newEvidence,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="Description of evidence..."
-                className="w-full p-3 border rounded-lg text-sm"
+                className="input-field min-h-[120px]"
                 rows={3}
               />
               <div className="flex space-x-2">
                 <button
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm"
+                  onClick={() =>
+                    document.getElementById("file-upload")?.click()
+                  }
+                  className="btn-secondary flex-1"
                 >
                   <Paperclip className="h-4 w-4 mr-2" />
                   Attach File
                 </button>
                 <button
-                  onClick={() => document.getElementById('camera-upload')?.click()}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm"
+                  onClick={() =>
+                    document.getElementById("camera-upload")?.click()
+                  }
+                  className="btn-secondary flex-1"
                 >
                   <Camera className="h-4 w-4 mr-2" />
                   Take Photo
@@ -174,25 +197,24 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
                 onChange={handleFileUpload}
                 className="hidden"
               />
-              <button
-                onClick={handleAddEvidence}
-                className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-full text-sm"
-              >
+              <button onClick={handleAddEvidence} className="btn-primary">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Evidence
               </button>
             </div>
             <div className="space-y-2">
               {caseDetails.evidence.map((item) => (
-                <div key={item.id} className="p-3 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900">{item.type}</h4>
-                  <p className="text-sm text-gray-700 mt-1">{item.description}</p>
+                <div key={item.id} className="message-bubble">
+                  <h4 className="font-medium text-foreground">{item.type}</h4>
+                  <p className="text-sm text-foreground mt-1">
+                    {item.description}
+                  </p>
                 </div>
               ))}
               {caseDetails.documents.map((doc) => (
-                <div key={doc.id} className="p-3 bg-gray-50 rounded-lg flex items-center">
-                  <Paperclip className="h-4 w-4 text-gray-400 mr-2" />
-                  <span className="text-sm text-gray-700">{doc.name}</span>
+                <div key={doc.id} className="message-bubble flex items-center">
+                  <Paperclip className="h-4 w-4 text-muted mr-2" />
+                  <span className="text-sm text-foreground">{doc.name}</span>
                 </div>
               ))}
             </div>
@@ -202,13 +224,10 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
       default:
         return (
           <div className="space-y-3">
-            {['Item 1', 'Item 2', 'Item 3'].map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center p-3 bg-gray-50 rounded-lg"
-              >
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span className="text-sm text-gray-700">{item}</span>
+            {["Item 1", "Item 2", "Item 3"].map((item, index) => (
+              <div key={index} className="message-bubble flex items-center">
+                <CheckCircle className="h-4 w-4 text-primary mr-2" />
+                <span className="text-sm text-foreground">{item}</span>
               </div>
             ))}
           </div>
@@ -219,65 +238,87 @@ function ActionWizard({ topic, onComplete, caseDetails, setCaseDetails }: Action
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Action Steps</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Document and track your case
+        <h2 className="text-xl font-bold text-foreground">Action Steps</h2>
+        <p className="mt-2 text-sm text-muted">
+          Follow these steps to document your case
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="h-2 bg-gray-200 rounded-full">
-            <div
-              className="h-2 bg-blue-600 rounded-full transition-all duration-300"
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            ></div>
-          </div>
-          <div className="mt-2 text-xs text-gray-600 text-right">
-            Step {currentStep + 1} of {steps.length}
-          </div>
-        </div>
+      {/* Progress Steps */}
+      <div className="flex justify-between items-center">
+        {steps.map((step, index) => (
+          <React.Fragment key={step.title}>
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  index <= currentStep
+                    ? "bg-primary text-white"
+                    : "bg-muted text-primary"
+                }`}
+              >
+                {index < currentStep ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  index + 1
+                )}
+              </div>
+              <span
+                className={`text-xs mt-1 ${
+                  index <= currentStep ? "text-foreground" : "text-muted"
+                }`}
+              >
+                {step.title}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`flex-1 h-0.5 ${
+                  index < currentStep ? "bg-primary" : "bg-muted"
+                }`}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
 
-        {/* Current Step Content */}
+      {/* Step Content */}
+      <div className="card">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {steps[currentStep].title}
-          </h3>
-          <p className="text-sm text-gray-600">{steps[currentStep].description}</p>
-
-          {renderStepContent()}
-
-          <div className="flex justify-between pt-4 border-t mt-4">
-            <button
-              onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-              className={`px-4 py-2 text-sm text-gray-600 rounded-full hover:bg-gray-100 ${
-                currentStep === 0 ? 'invisible' : ''
-              }`}
-            >
-              Back
-            </button>
-            <button
-              onClick={() => {
-                if (currentStep < steps.length - 1) {
-                  setCurrentStep(currentStep + 1);
-                } else {
-                  onComplete();
-                }
-              }}
-              className="flex items-center px-6 py-2 bg-blue-600 text-white text-sm rounded-full hover:bg-blue-700"
-            >
-              {currentStep < steps.length - 1 ? (
-                <>
-                  Next
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </>
-              ) : (
-                'Complete'
-              )}
-            </button>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">
+              {steps[currentStep].title}
+            </h3>
+            <p className="text-sm text-muted">
+              {steps[currentStep].description}
+            </p>
           </div>
+          {renderStepContent()}
         </div>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between gap-4">
+        <button
+          onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+          className={`btn-neutral flex items-center ${
+            currentStep === 0 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={currentStep === 0}
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Previous
+        </button>
+        <button
+          onClick={() =>
+            currentStep === steps.length - 1
+              ? onComplete()
+              : setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))
+          }
+          className="btn-primary flex items-center"
+        >
+          {currentStep === steps.length - 1 ? "Complete" : "Next"}
+          <ChevronRight className="h-4 w-4 ml-2" />
+        </button>
       </div>
     </div>
   );

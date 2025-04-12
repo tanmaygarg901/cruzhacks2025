@@ -1,46 +1,61 @@
-import React, { useState } from 'react';
-import { Send, Mic, Bot } from 'lucide-react';
+import React, { useState } from "react";
+import { Send, Mic, Bot } from "lucide-react";
+
+interface ChatMessage {
+  type: "user" | "ai";
+  content: string;
+  timestamp: string;
+  isVoice?: boolean;
+}
 
 interface ChatInterfaceProps {
   topic: string;
   onComplete: () => void;
-  chatHistory: any[];
-  setChatHistory: (history: any[]) => void;
+  chatHistory: ChatMessage[];
+  setChatHistory: (history: ChatMessage[]) => void;
 }
 
-function ChatInterface({ topic, onComplete, chatHistory, setChatHistory }: ChatInterfaceProps) {
-  const [message, setMessage] = useState('');
+function ChatInterface({
+  topic,
+  onComplete,
+  chatHistory,
+  setChatHistory,
+}: ChatInterfaceProps) {
+  const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
 
   const handleSend = () => {
     if (!message.trim()) return;
 
-    const newMessage = {
-      type: 'user',
+    const newMessage: ChatMessage = {
+      type: "user",
       content: message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     setChatHistory([...chatHistory, newMessage]);
-    setMessage('');
+    setMessage("");
 
     // Simulate AI response
     setTimeout(() => {
-      const aiResponse = {
-        type: 'ai',
-        content: 'This is a simulated AI response. In the actual implementation, this would be replaced with the real AI response.',
-        timestamp: new Date().toISOString()
+      const aiResponse: ChatMessage = {
+        type: "ai",
+        content:
+          "This is a simulated AI response. In the actual implementation, this would be replaced with the real AI response.",
+        timestamp: new Date().toISOString(),
       };
-      setChatHistory(prev => [...prev, aiResponse]);
+      setChatHistory((currentHistory) => [...currentHistory, aiResponse]);
     }, 1000);
   };
 
   return (
-    <div className="h-[calc(100vh-11rem)] flex flex-col bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="h-[calc(100vh-11rem)] flex flex-col bg-background rounded-xl shadow-sm overflow-hidden border">
       {/* Chat Header */}
-      <div className="bg-blue-600 p-3 text-white">
+      <div className="bg-primary p-3 text-white">
         <h2 className="text-lg font-semibold">AI Legal Assistant</h2>
-        <p className="text-sm text-blue-100">Discussing: {topic.replace('-', ' ').toUpperCase()}</p>
+        <p className="text-sm text-muted text-white">
+          Discussing: {topic.replace("-", " ").toUpperCase()}
+        </p>
       </div>
 
       {/* Chat Messages */}
@@ -49,17 +64,17 @@ function ChatInterface({ topic, onComplete, chatHistory, setChatHistory }: ChatI
           <div
             key={index}
             className={`flex ${
-              msg.type === 'user' ? 'justify-end' : 'justify-start'
+              msg.type === "user" ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`max-w-[80%] rounded-lg p-3 ${
-                msg.type === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-900'
+                msg.type === "user"
+                  ? "message-bubble-user"
+                  : "message-bubble-ai bg-gray-200"
               }`}
             >
-              {msg.type === 'ai' && (
+              {msg.type === "ai" && (
                 <div className="flex items-center mb-1">
                   <Bot className="h-4 w-4 mr-1" />
                   <span className="text-sm font-semibold">AI Assistant</span>
@@ -75,12 +90,12 @@ function ChatInterface({ topic, onComplete, chatHistory, setChatHistory }: ChatI
       </div>
 
       {/* Mobile Input Area */}
-      <div className="border-t p-3 bg-white">
+      <div className="border-t border-border p-3 bg-background">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsRecording(!isRecording)}
-            className={`p-2 rounded-full ${
-              isRecording ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100'
+            className={`p-2 rounded-full bg-primary ${
+              isRecording ? "bg-red-100 text-red-600" : "hover:bg-muted"
             }`}
           >
             <Mic className="h-5 w-5" />
@@ -90,21 +105,18 @@ function ChatInterface({ topic, onComplete, chatHistory, setChatHistory }: ChatI
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 px-3 py-2 border rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            className="input-field"
+            onKeyPress={(e) => e.key === "Enter" && handleSend()}
           />
           <button
             onClick={handleSend}
-            className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            className="p-2 bg-primary text-white rounded-full hover:secondary"
           >
             <Send className="h-5 w-5" />
           </button>
         </div>
         <div className="mt-3">
-          <button
-            onClick={onComplete}
-            className="w-full px-4 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700"
-          >
+          <button onClick={onComplete} className="btn-secondary">
             Continue to Local Resources
           </button>
         </div>
