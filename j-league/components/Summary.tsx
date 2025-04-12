@@ -42,7 +42,7 @@ function Summary({
   caseDetails,
   onGoHome,
 }: SummaryProps) {
-  const generateCaseFile = () => {
+  const generateCaseFile = async () => {
     const doc = new jsPDF();
 
     // Add header
@@ -71,21 +71,57 @@ function Summary({
     doc.setFontSize(14);
     doc.text("Evidence Collection", 20, 120);
     doc.setFontSize(10);
-    caseDetails.evidence.forEach((item, index) => {
-      const yPos = 130 + index * 30;
-      doc.text(`• Type: ${item.type}`, 20, yPos);
-      doc.text(`  Description: ${item.description}`, 20, yPos + 5);
+
+    let currentY = 130;
+    const imagePromises: Promise<void>[] = [];
+
+    for (const item of caseDetails.evidence) {
+      doc.text(`• Type: ${item.type}`, 20, currentY);
+      doc.text(`  Description: ${item.description}`, 20, currentY + 5);
+
       if (item.file) {
-        doc.text(`  File: ${item.file.name}`, 20, yPos + 10);
+        if (item.file.type.startsWith("image/")) {
+          // Create a promise for each image
+          const imagePromise = new Promise<void>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const imgData = e.target?.result as string;
+              const img = new Image();
+              img.onload = () => {
+                const aspectRatio = img.width / img.height;
+                const width = 150;
+                const height = width / aspectRatio;
+                doc.addImage(imgData, "JPEG", 20, currentY + 10, width, height);
+                currentY += height + 20;
+                resolve();
+              };
+              img.src = imgData;
+            };
+            reader.readAsDataURL(item.file!);
+          });
+          imagePromises.push(imagePromise);
+        } else {
+          // Handle other file types
+          doc.text(
+            `  File: ${item.file.name} (See attached files)`,
+            20,
+            currentY + 10
+          );
+          currentY += 20;
+        }
       }
-    });
+      currentY += 30;
+    }
+
+    // Wait for all images to be processed
+    await Promise.all(imagePromises);
 
     // Add chat history
     doc.setFontSize(14);
-    doc.text("Consultation History", 20, 200);
+    doc.text("Consultation History", 20, currentY + 20);
     doc.setFontSize(10);
     chatHistory.forEach((msg, index) => {
-      const yPos = 210 + index * 20;
+      const yPos = currentY + 30 + index * 20;
       const prefix = msg.type === "user" ? "You: " : "AI: ";
       doc.text(`${prefix}${msg.content}`, 20, yPos);
       doc.text(`  ${new Date(msg.timestamp).toLocaleString()}`, 20, yPos + 5);
@@ -93,7 +129,7 @@ function Summary({
 
     // Add key rights
     doc.setFontSize(14);
-    doc.text("Key Rights", 20, 300);
+    doc.text("Key Rights", 20, currentY + 200);
     doc.setFontSize(10);
     const rights = [
       "Right to fair housing and protection against discrimination",
@@ -101,7 +137,7 @@ function Summary({
       "Right to privacy and proper notice before landlord entry",
     ];
     rights.forEach((right, index) => {
-      doc.text(`• ${right}`, 20, 310 + index * 10);
+      doc.text(`• ${right}`, 20, currentY + 210 + index * 10);
     });
 
     // Save the PDF

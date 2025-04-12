@@ -221,7 +221,7 @@ function ActionWizard({
                     accept="image/*,.pdf,.doc,.docx"
                   />
                   <Paperclip className="h-4 w-4 mr-2" />
-                  Attach File
+                  Attach File (PNG or JPG)
                 </label>
                 {newEvidence.file && (
                   <span className="text-sm text-foreground">
