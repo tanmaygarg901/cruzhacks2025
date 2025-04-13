@@ -91,7 +91,7 @@ function App() {
     <div className="min-h-screen bg-gradient-to-b from-muted to-background">
       {/* Mobile Navigation */}
       <nav className="bg-background shadow-sm fixed top-0 left-0 right-0 z-50">
-        <div className="px-4 py-3 bg-white">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               {currentStep !== "topics" && (

@@ -105,7 +105,7 @@ function ChatInterface({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="input-field"
+            className="input-field color"
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
           />
           <button
